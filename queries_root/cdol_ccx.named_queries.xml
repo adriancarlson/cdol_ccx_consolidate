@@ -1,0 +1,133 @@
+<queries>
+	<query name="net.cdolinc.contacts.duplicates.list" flattened="true">
+		<summary>CDOL: Duplicate Contacts</summary>
+        <args>
+			<arg name="params" type="array" required="true" />
+        </args>
+		<columns>
+			<column column="person.lastname">contact_ids_duplicates</column>
+			<column column="person.lastname">last_name_first_initial</column>
+			<column column="person.lastname">mobile_phone</column>
+			<column column="person.lastname">email_address</column>
+			<column column="person.lastname">street_address</column>
+		</columns>
+		<sql>
+			<![CDATA[
+SELECT
+	duplicates.contact_ids_duplicates,
+	initcap(duplicates.last_name_first_initial) AS last_name_first_initial,
+	duplicates.mobile_phone,
+	duplicates.email_address,
+	duplicates.street_address
+FROM
+	(
+		SELECT
+			last_name_first_initial,
+			mobile_phone,
+			email_address,
+			street_address,
+			listagg(person_id, ', ') within GROUP (
+				ORDER BY
+					last_name_first_initial,
+					mobile_phone,
+					email_address,
+					street_address
+			) AS contact_ids_duplicates
+		FROM
+			(
+				SELECT
+					UNIQUE person.id person_id,
+					CASE
+						WHEN 'N' IN (:params) THEN lower(person.lastname) || ', ' || lower(substr(person.firstname, 1, 3))
+						ELSE ''
+					END last_name_first_initial,
+					CASE
+						WHEN 'P' IN (:params) THEN phonenumber.phonenumber
+						ELSE ''
+					END mobile_phone,
+					CASE
+						WHEN 'E' IN (:params) THEN lower(emailaddress.emailaddress)
+						ELSE ''
+					END email_address,
+					CASE
+						WHEN 'S' IN (:params) THEN translate(
+							lower(personaddress.street),
+							'0123456789abcdefghijklmnopqrstuvwxyz' || lower(personaddress.street),
+							'0123456789abcdefghijklmnopqrstuvwxyz'
+						)
+						ELSE ''
+					END street_address
+				FROM
+					person
+					LEFT JOIN personphonenumberassoc ON personphonenumberassoc.personid = person.id AND personphonenumberassoc.phonetypecodesetid = 13 
+					LEFT JOIN phonenumber ON phonenumber.phonenumberid = personphonenumberassoc.phonenumberid AND personphonenumberassoc.phonetypecodesetid = 13 
+					LEFT JOIN personemailaddressassoc ON personemailaddressassoc.personid = person.id
+					LEFT JOIN emailaddress ON emailaddress.emailaddressid = personemailaddressassoc.emailaddressid 
+					LEFT JOIN personaddressassoc ON personaddressassoc.personid = person.id
+					LEFT JOIN personaddress ON personaddress.personaddressid = personaddressassoc.personaddressid 
+					LEFT JOIN studentcontactassoc ON studentcontactassoc.personid = person.id
+					LEFT JOIN u_person_additional_info ON u_person_additional_info.personid  = person.id
+					LEFT JOIN students ON students.dcid = studentcontactassoc.studentdcid
+				WHERE
+					(students.enroll_status in (-1,0) OR 'I' IN (:params))
+					AND (
+							person.lastname is NOT NULL
+							OR 'N' NOT IN (:params)
+						)					
+					AND (
+						phonenumber.phonenumber IS NOT NULL
+						OR 'P' NOT IN (:params)
+					)
+					AND (
+						emailaddress.emailaddress IS NOT NULL
+						OR 'E' NOT IN (:params)
+					)
+					AND (
+						personaddress.street IS NOT NULL
+						OR 'S' NOT IN (:params)
+					)
+					AND (
+						u_person_additional_info.person_dfp IS NULL 
+						OR 
+						u_person_additional_info.person_dfp = 0
+					)
+				UNION
+				SELECT
+					guardianpersonassoc.personid,
+					CASE
+						WHEN 'N' IN (:params) THEN lower(guardian.lastname) || ', ' || lower(substr(guardian.firstname, 1, 3))
+						ELSE ''
+					END,
+					'' AS mobile_phone,
+					CASE
+						WHEN 'E' IN (:params) THEN lower(pcas_emailcontact.emailaddress)
+						ELSE ''
+					END email_address,
+					'' AS street_address
+				FROM
+					pcas_emailcontact
+					JOIN pcas_account ON pcas_account.pcas_accountid = pcas_emailcontact.pcas_accountid
+					JOIN guardian ON guardian.accountidentifier = pcas_account.pcas_accounttoken
+					JOIN guardianpersonassoc ON guardianpersonassoc.guardianid = guardian.guardianid
+					JOIN guardianstudent ON guardianstudent.guardianid = guardian.guardianid
+					JOIN students ON students.dcid = guardianstudent.studentsdcid
+				WHERE
+					students.enroll_status in (-1,0)
+					AND (
+						'E' IN (:params) OR ('N' IN (:params) AND 'S' NOT IN (:params) AND 'P' NOT IN (:params))
+					)
+			)
+		GROUP BY
+			last_name_first_initial,
+			mobile_phone,
+			email_address,
+			street_address
+	) duplicates
+WHERE
+	contact_ids_duplicates LIKE '%,%'
+ORDER BY
+	contact_ids_duplicates	
+			]]>
+		</sql>
+	</query>
+</queries>

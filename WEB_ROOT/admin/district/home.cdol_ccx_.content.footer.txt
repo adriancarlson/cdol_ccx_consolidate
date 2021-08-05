@@ -1,0 +1,16 @@
+<script>
+	$j(function() {
+		/* Build the link for consolidate contacts express */
+		var html = '';
+		html += '<tr>';
+		html += '<td><a href="/admin/contacts/cdol_ccx_consolidate.html">';
+		html += 'CDOL Consolidate Contacts Express';
+		html += '</a></td>';
+		html += '<td>';
+		html += 'Quickly find duplicate contacts for consolidation based on last name + first three initial + mobile phone number (or email address).';
+		html += '</td>';
+
+		/* insert the link after the family management */
+		$j("[href^='/admin/district/district-registration.html']").closest("tr").before(html);
+	});
+</script>
