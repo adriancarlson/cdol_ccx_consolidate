@@ -3,7 +3,7 @@
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		description="CDOL Version of Consolidate Contacts Express. Originally by Jim Parsons" 
 		name="CDOL Duplicate Contacts Finder"
-		version="21.8.0.6"
+		version="21.8.0.15"
 		xsi:schemaLocation="http://plugin.powerschool.pearson.com plugin.xsd">
 	<publisher name="Adrian Carlson">
 		<contact email="adrian-carlson@cdolinc.net"/>

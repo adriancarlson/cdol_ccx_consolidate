@@ -36,83 +36,83 @@ FROM
 		FROM
 			(
 				SELECT
-					UNIQUE person.id person_id,
+					UNIQUE p.id person_id,
 					CASE
-						WHEN 'N' IN (:params) THEN lower(person.lastname) || ', ' || lower(substr(person.firstname, 1, 3))
+						WHEN 'N' IN (:params) THEN lower(p.lastname) || ', ' || lower(substr(p.firstname, 1, 3))
 						ELSE ''
 					END last_name_first_initial,
 					CASE
-						WHEN 'P' IN (:params) THEN phonenumber.phonenumber
+						WHEN 'P' IN (:params) THEN pn.phonenumber
 						ELSE ''
 					END mobile_phone,
 					CASE
-						WHEN 'E' IN (:params) THEN lower(emailaddress.emailaddress)
+						WHEN 'E' IN (:params) THEN lower(ea.emailaddress)
 						ELSE ''
 					END email_address,
 					CASE
 						WHEN 'S' IN (:params) THEN translate(
-							lower(personaddress.street),
-							'0123456789abcdefghijklmnopqrstuvwxyz' || lower(personaddress.street),
+							lower(pa.street),
+							'0123456789abcdefghijklmnopqrstuvwxyz' || lower(pa.street),
 							'0123456789abcdefghijklmnopqrstuvwxyz'
 						)
 						ELSE ''
 					END street_address
 				FROM
-					person
-					LEFT JOIN personphonenumberassoc ON personphonenumberassoc.personid = person.id AND personphonenumberassoc.phonetypecodesetid = 13 
-					LEFT JOIN phonenumber ON phonenumber.phonenumberid = personphonenumberassoc.phonenumberid AND personphonenumberassoc.phonetypecodesetid = 13 
-					LEFT JOIN personemailaddressassoc ON personemailaddressassoc.personid = person.id
-					LEFT JOIN emailaddress ON emailaddress.emailaddressid = personemailaddressassoc.emailaddressid 
-					LEFT JOIN personaddressassoc ON personaddressassoc.personid = person.id
-					LEFT JOIN personaddress ON personaddress.personaddressid = personaddressassoc.personaddressid 
-					LEFT JOIN studentcontactassoc ON studentcontactassoc.personid = person.id
-					LEFT JOIN u_person_additional_info ON u_person_additional_info.personid  = person.id
-					LEFT JOIN students ON students.dcid = studentcontactassoc.studentdcid
+					person p
+					LEFT JOIN personphonenumberassoc ppna ON ppna.personid = p.id AND ppna.phonetypecodesetid = 13 
+					LEFT JOIN phonenumber pn ON pn.phonenumberid = ppna.phonenumberid AND ppna.phonetypecodesetid = 13 
+					LEFT JOIN personemailaddressassoc  peaa ON peaa.personid = p.id
+					LEFT JOIN emailaddress ea ON ea.emailaddressid = peaa.emailaddressid 
+					LEFT JOIN personaddressassoc paa ON paa.personid = p.id
+					LEFT JOIN personaddress pa ON pa.personaddressid = paa.personaddressid 
+					LEFT JOIN studentcontactassoc sca ON sca.personid = p.id
+					LEFT JOIN u_person_additional_info ad ON ad.personid  = p.id
+					LEFT JOIN students stu ON stu.dcid = sca.studentdcid
 				WHERE
-					(students.enroll_status in (-1,0) OR 'I' IN (:params))
+					(stu.enroll_status in (-1,0) OR 'I' IN (:params))
 					AND (
-							person.lastname is NOT NULL
+							p.lastname is NOT NULL
 							OR 'N' NOT IN (:params)
 						)					
 					AND (
-						phonenumber.phonenumber IS NOT NULL
+						pn.phonenumber IS NOT NULL
 						OR 'P' NOT IN (:params)
 					)
 					AND (
-						emailaddress.emailaddress IS NOT NULL
+						ea.emailaddress IS NOT NULL
 						OR 'E' NOT IN (:params)
 					)
 					AND (
-						personaddress.street IS NOT NULL
+						pa.street IS NOT NULL
 						OR 'S' NOT IN (:params)
 					)
 					AND (
-						u_person_additional_info.person_dfp IS NULL 
+						ad.person_dfp IS NULL 
 						OR 
-						u_person_additional_info.person_dfp = 0
+						ad.person_dfp = 0
 					)
 				UNION
 				SELECT
-					guardianpersonassoc.personid,
+					gpa.personid,
 					CASE
-						WHEN 'N' IN (:params) THEN lower(guardian.lastname) || ', ' || lower(substr(guardian.firstname, 1, 3))
+						WHEN 'N' IN (:params) THEN lower(g.lastname) || ', ' || lower(substr(g.firstname, 1, 3))
 						ELSE ''
 					END,
 					'' AS mobile_phone,
 					CASE
-						WHEN 'E' IN (:params) THEN lower(pcas_emailcontact.emailaddress)
+						WHEN 'E' IN (:params) THEN lower(pcasec.emailaddress)
 						ELSE ''
 					END email_address,
 					'' AS street_address
 				FROM
-					pcas_emailcontact
-					JOIN pcas_account ON pcas_account.pcas_accountid = pcas_emailcontact.pcas_accountid
-					JOIN guardian ON guardian.accountidentifier = pcas_account.pcas_accounttoken
-					JOIN guardianpersonassoc ON guardianpersonassoc.guardianid = guardian.guardianid
-					JOIN guardianstudent ON guardianstudent.guardianid = guardian.guardianid
-					JOIN students ON students.dcid = guardianstudent.studentsdcid
+					pcas_emailcontact pcasec
+					JOIN pcas_account  pcasa ON pcasa.pcas_accountid = pcasec.pcas_accountid
+					JOIN guardian g ON g.accountidentifier = pcasa.pcas_accounttoken
+					JOIN guardianpersonassoc gpa ON gpa.guardianid = g.guardianid
+					JOIN guardianstudent gs ON gs.guardianid = g.guardianid
+					JOIN students stu ON stu.dcid = gs.studentsdcid
 				WHERE
-					students.enroll_status in (-1,0)
+					stu.enroll_status in (-1,0)
 					AND (
 						'E' IN (:params) OR ('N' IN (:params) AND 'S' NOT IN (:params) AND 'P' NOT IN (:params))
 					)

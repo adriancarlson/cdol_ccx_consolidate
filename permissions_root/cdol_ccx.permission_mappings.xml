@@ -1,8 +1,8 @@
 <permission_mappings>
-  <permission name='/admin/home.html'>
-	<implies allow="post">/ws/schema/query/net.cdolinc.contacts.duplicates.list</implies>
-  </permission>
-  <permission name='/admin/students/contacts.html'>
+	<permission name='/admin/home.html'>
+		<implies allow="post">/ws/schema/query/net.cdolinc.contacts.duplicates.list</implies>
+	</permission>
+	<permission name='/admin/students/contacts.html'>
 			<implies allow="post">/ws/schema/table/U_STUDENTCONTACTDETAIL_CDOL</implies>
 			<implies allow="put">/ws/schema/table/U_STUDENTCONTACTDETAIL_CDOL/#</implies>
 			<implies allow="delete">/ws/schema/table/U_STUDENTCONTACTDETAIL_CDOL/#</implies>
