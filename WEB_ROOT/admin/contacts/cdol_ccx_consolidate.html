@@ -68,6 +68,7 @@
 					<table class="grid">
 						<thead>
 							<tr>
+								<th></th>
 								<th>Contact IDs of Duplicates</th>
 								<th data-pss-sort-fields="last_name_first_initial" ng-show="matchName">Name (Last, First
 									Three Letters)</th>
@@ -78,6 +79,7 @@
 						</thead>
 						<tbody>
 							<tr data-ng-repeat="item in duplicatesDataFiltered">
+								<td>{{$index +1}}</td>
 								<td><a ng-click="selectContacts(item.contact_ids_duplicates)">{{
 										item.contact_ids_duplicates }}</a></td>
 								<td ng-show="matchName">{{ item.last_name_first_initial }}</td>
