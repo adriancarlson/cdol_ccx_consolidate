@@ -109,12 +109,18 @@
 									JOIN pcas_account  pcasa ON pcasa.pcas_accountid = pcasec.pcas_accountid
 									JOIN guardian g ON g.accountidentifier = pcasa.pcas_accounttoken
 									JOIN guardianpersonassoc gpa ON gpa.guardianid = g.guardianid
+									LEFT JOIN u_person_additional_info ad ON ad.personid  = gpa.personid
 									JOIN guardianstudent gs ON gs.guardianid = g.guardianid
 									JOIN students stu ON stu.dcid = gs.studentsdcid
 								WHERE
 									stu.enroll_status in (-1,0)
 									AND (
 										'E' IN (:params) OR ('N' IN (:params) AND 'S' NOT IN (:params) AND 'P' NOT IN (:params))
+									)
+									AND (
+										ad.person_dfp IS NULL 
+										OR 
+										ad.person_dfp = 0
 									)
 							)
 						GROUP BY
