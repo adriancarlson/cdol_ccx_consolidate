@@ -10,7 +10,7 @@
     			},
     	data: JSON.stringify({params:['N']}),
     	}).done(function(response) {
-    		console.log(response.count);
+    		//console.log(response.count);
     		 $j("#left_nav_functions").append('<li><a href="/admin/contacts/cdol_ccx_consolidate.html">Dup. Contacts ('+response.count+')</a></li>');
     	});	
     

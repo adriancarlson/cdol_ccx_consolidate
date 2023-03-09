@@ -1,0 +1,44 @@
+ ~[if#distCheck.security.inrole=9]
+<ul id='tempDupCountUL' class='hide'>
+    <li class="pds-app-action">
+    	<a id="btnNotifications" class="dialogC" href="/admin/contacts/cdol_ccx_consolidate.html" title="Duplicate Contacts">
+    		<pds-icon name="user-shadow" class="style-scope x-scope pds-icon-0 pds-widget" pds-widget="pds-widget"></pds-icon>
+            <span id="dupContactSpan"></span>
+    		<div class="screen_readers_only"><span class="screen_readers_only">Duplicate Contacts</span></div>
+    	</a>
+    </li>
+</ul>
+    
+
+<script type="text/javascript">
+
+$j(() => (async() => {
+    async () => {
+    let dupcount;
+
+    try {
+        dupcount = await $.ajax({
+            url:'/ws/schema/query/net.cdolinc.contacts.duplicates.list/count',
+		    method:'POST',
+            headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+    	    data: JSON.stringify({params:['N']})
+        });
+
+        return dupcount;
+        
+    } catch (error) {
+        console.error(error);
+    }
+    console.log(dupcount)
+}
+
+
+    $j('#dupContactSpan).text(dupcount)
+    $j('#tools2').prepend( $j('#tempDupCountUL').html() );  
+    $j('#tempDupCountUL').remove();
+})());
+</script>
+[/if#distCheck]
