@@ -1,44 +1,53 @@
  ~[if#distCheck.security.inrole=9]
-<ul id='tempDupCountUL' class='hide'>
-    <li class="pds-app-action">
-    	<a id="btnNotifications" class="dialogC" href="/admin/contacts/cdol_ccx_consolidate.html" title="Duplicate Contacts">
-    		<pds-icon name="user-shadow" class="style-scope x-scope pds-icon-0 pds-widget" pds-widget="pds-widget"></pds-icon>
+ <style>
+    .icon-flipped {
+        transform: scaleX(-1);
+        -moz-transform: scaleX(-1);
+        -webkit-transform: scaleX(-1);
+        -ms-transform: scaleX(-1);
+        
+    }
+    #dupLi {
+        margin-right: 10px;
+    }
+    #container.new #btnNotifications #dupContactSpan {
+        margin-inline-start: 22px;
+        padding: 2px 4px;
+    }
+ </style>
+
+<div id='tempDupCount' class='hide'>
+    <li id='dupLi' class="pds-app-action">
+    	<a id="btnNotifications" class="badge-adjust" href="/admin/contacts/cdol_ccx_consolidate.html" title="Duplicate Contacts">
+    		<pds-icon name="user-shadow" class="style-scope x-scope pds-icon-0 pds-widget icon-flipped" pds-widget="pds-widget"></pds-icon>
             <span id="dupContactSpan"></span>
     		<div class="screen_readers_only"><span class="screen_readers_only">Duplicate Contacts</span></div>
     	</a>
     </li>
-</ul>
+</div>
     
 
 <script type="text/javascript">
+$j(() =>
+	(async () => {
+		let res
+		try {
+			res = await $j.ajax({
+				url: '/ws/schema/query/net.cdolinc.contacts.duplicates.list/count',
+				method: 'POST',
+				headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+				data: JSON.stringify({ params: ['N'] })
+			})
+		} catch (err) {
+			console.log(err)
+		}
 
-$j(() => (async() => {
-    async () => {
-    let dupcount;
-
-    try {
-        dupcount = await $.ajax({
-            url:'/ws/schema/query/net.cdolinc.contacts.duplicates.list/count',
-		    method:'POST',
-            headers: {
-                        Accept: 'application/json',
-                        'Content-Type': 'application/json',
-                    },
-    	    data: JSON.stringify({params:['N']})
-        });
-
-        return dupcount;
-        
-    } catch (error) {
-        console.error(error);
-    }
-    console.log(dupcount)
-}
-
-
-    $j('#dupContactSpan).text(dupcount)
-    $j('#tools2').prepend( $j('#tempDupCountUL').html() );  
-    $j('#tempDupCountUL').remove();
-})());
+		if (res.count > 0) {
+			$j('#dupContactSpan').text(res.count)
+			$j('#tools2').before($j('#tempDupCount').html())
+			$j('#tempDupCount').remove()
+		}
+	})()
+)
 </script>
 [/if#distCheck]
