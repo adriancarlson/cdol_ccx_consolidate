@@ -18,7 +18,7 @@
 
 <div id='tempDupCount' class='hide'>
     <li id='dupLi' class="pds-app-action">
-    	<a id="btnNotifications" class="badge-adjust" href="/admin/contacts/cdol_ccx_consolidate.html" title="Duplicate Contacts">
+    	<a id="btnNotifications" class="badge-adjust" href="/admin/contacts/ccx_consolidate.html" title="Duplicate Contacts">
     		<pds-icon name="user-shadow" class="style-scope x-scope pds-icon-0 pds-widget icon-flipped" pds-widget="pds-widget"></pds-icon>
             <span id="dupContactSpan"></span>
     		<div class="screen_readers_only"><span class="screen_readers_only">Duplicate Contacts</span></div>
@@ -28,22 +28,60 @@
     
 
 <script type="text/javascript">
+
 $j(() =>
 	(async () => {
-		let res
+	    let exceptions
+	    try {
+			exceptions = await $j.ajax({
+				url: '/admin/contacts/ccx_getexceptions.json',
+				method: 'GET'
+				
+			})
+		} catch (err) {
+			console.log(err)
+		}
+	    exceptions.pop()
+	   
+	   
+		let dupCount
 		try {
-			res = await $j.ajax({
-				url: '/ws/schema/query/net.cdolinc.contacts.duplicates.list/count',
+			dupCount = await $j.ajax({
+				url: '/ws/schema/query/com.brainupgrade.ccx.duplicates.list?pagesize=0',
 				method: 'POST',
 				headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-				data: JSON.stringify({ params: ['N'] })
+				data: JSON.stringify({ params: ['N','I'], fnlen: 3 })
 			})
 		} catch (err) {
 			console.log(err)
 		}
 
-		if (res.count > 0) {
-			$j('#dupContactSpan').text(res.count)
+        
+        if (dupCount.record === undefined) {
+        	        let duplicatesData = [];
+        	    } else {
+ 
+        	                dupCount.record.forEach(row => {
+        	                    let match = exceptions.find(elem => elem.exception == row.contact_ids_duplicates)
+        	                    
+        	                    if (match) {
+        	                row.exception = true;
+        	                row.exception_id = match.dcid;
+        	            } else {
+        	                row.exception = false;
+        	                row.exception_id = 0;
+        	            }
+        	                })
+        	                
+        	                duplicatesData =  dupCount.record.filter(row => !row.exception)
+        	     
+        	        
+        	    }
+        
+        
+		if (duplicatesData.length > 0) {
+		    
+			$j('#dupContactSpan').text(duplicatesData.length)
 			$j('#tools2').before($j('#tempDupCount').html())
 			$j('#tempDupCount').remove()
 		}
