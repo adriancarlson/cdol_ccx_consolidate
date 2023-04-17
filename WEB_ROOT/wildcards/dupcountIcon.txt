@@ -10,7 +10,7 @@
 	}
 
 	#dupLi {
-		margin-right: 10px;
+		margin-right: 8px;
 	}
 
 	#container.new #btnNotifications #dupContactSpan {
@@ -76,7 +76,7 @@
 
 			if (duplicatesData.length > 0) {
 				$j('#dupContactSpan').text(duplicatesData.length)
-				$j('#tools2').before($j('#tempDupCount').html())
+				$j('#tools2').append($j('#tempDupCount').html())
 				$j('#tempDupCount').remove()
 			}
 		})()
